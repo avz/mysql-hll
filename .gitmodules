@@ -1,0 +1,3 @@
+[submodule "deps/hll"]
+	path = deps/hll
+	url = https://github.com/avz/hll.git
