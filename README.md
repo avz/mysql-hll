@@ -1,4 +1,4 @@
-mysql-hll
+HyperLogLog UDF for MySQL
 =========
 
-HyperLogLog UDF for MySQL
+Work in Progress
