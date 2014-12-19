@@ -11,6 +11,6 @@
 
 #### Aggregation functions
 
-##### `blob HLL_GROUP_CREATE(bits, *blobs)`
+##### `blob HLL_GROUP_CREATE(bits, *keys)`
 ##### `double HLL_GROUP_COUNT(*blobs)`
 ##### `blob HLL_GROUP_MERGE(*blobs)`
