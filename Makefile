@@ -8,9 +8,9 @@ VPATH=src
 
 CFLAGS?=-O2
 
-build: mysql-hll.so.1.0.1
+build: mysql-hll.so
 
-mysql-hll.so.1.0.1: $(OBJS) deps/hll/lib/libhyperloglog.a
+mysql-hll.so: $(OBJS) deps/hll/lib/libhyperloglog.a
 	$(CC) -shared \
 	    -Wl,-install_name,mysql-hll.so \
 	    -static \
