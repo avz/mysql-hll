@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <mysql/mysql.h>
 #include "../deps/hll/src/hll.h"
@@ -35,4 +36,82 @@ double HLL_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 	hll_destroy(&hll);
 
 	return count;
+}
+
+my_bool HLL_CREATE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+	if(args->arg_count < 1) {
+		strcpy(message, "This function takes at least 1 argument");
+		return 1;
+	}
+
+	args->arg_type[0] = INT_RESULT;
+	initid->maybe_null = 1;
+	initid->max_length = 1 << 24;
+	initid->ptr = NULL;
+
+	return 0;
+}
+
+void HLL_CREATE_deinit(UDF_INIT *initid) {
+	if(initid->ptr) {
+		hll_destroy((struct HLL*)initid->ptr);
+		free(initid->ptr);
+	}
+}
+
+char *HLL_CREATE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *length,
+	char *is_null, char *error)
+{
+	long long bits;
+	struct HLL *hll;
+	size_t len;
+	int i;
+
+	if(!args->args[0]) {
+		*error = 1;
+		return NULL;
+	}
+
+	bits = *((long long *)args->args[0]);
+
+	if(bits <= 0 || bits > 255) {
+		*error = 1;
+		return NULL;
+	}
+
+	hll = malloc(sizeof(*hll));
+
+	if(hll_init(hll, (uint8_t)bits) != 0) {
+		free(hll);
+		*error = 1;
+		return NULL;
+	}
+
+	for(i = 1; i < args->arg_count; i++) {
+		if(!args->args[i]) /* argument is NULL */
+			continue;
+
+		switch(args->arg_type[i]) {
+			case DECIMAL_RESULT:
+			case STRING_RESULT:
+				hll_add(hll, args->args[i], args->lengths[i]);
+			break;
+			case INT_RESULT:
+				len = (size_t)snprintf(result, 255, "%lld", *((long long*)args->args[i]));
+				hll_add(hll, result, len);
+			break;
+			case REAL_RESULT:
+				len = (size_t)snprintf(result, 255, "%f", *((double*)args->args[i]));
+				hll_add(hll, result, len);
+			break;
+			default:
+				*error = 1;
+				return NULL;
+		}
+	}
+
+	initid->ptr = (char *)hll;
+
+	*length = hll->size;
+	return (char *)hll->registers;
 }
