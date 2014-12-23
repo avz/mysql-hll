@@ -166,10 +166,89 @@ char *HLL_ADD(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *len
 	}
 
 	if(_add_args_to_hll(hll, args, 1) != 0) {
+		hll_destroy(hll);
 		free(hll);
 		*error = 1;
 		return NULL;
 	}
+
+	initid->ptr = (char *)hll;
+
+	*length = hll->size;
+	return (char *)hll->registers;
+}
+
+my_bool HLL_MERGE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+	if(args->arg_count < 2) {
+		strcpy(message, "This function takes at least 2 arguments");
+		return 1;
+	}
+
+	args->arg_type[0] = STRING_RESULT;
+	args->arg_type[1] = STRING_RESULT;
+	initid->maybe_null = 1;
+	initid->max_length = 1 << 24;
+	initid->ptr = NULL;
+
+	return 0;
+}
+
+void HLL_MERGE_deinit(UDF_INIT *initid) {
+	if(initid->ptr) {
+		hll_destroy((struct HLL*)initid->ptr);
+		free(initid->ptr);
+	}
+}
+
+char *HLL_MERGE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *length,
+	char *is_null, char *error)
+{
+	struct HLL *hll;
+	struct HLL hll2;
+	int i;
+
+	if(!args->args[0]) {
+		*error = 1;
+		return NULL;
+	}
+
+	hll = malloc(sizeof(*hll));
+
+	if(hll_load(hll, args->args[0], args->lengths[0]) != 0) {
+		free(hll);
+		*error = 1;
+		return NULL;
+	}
+
+	for(i = 0; i < args->arg_count; i++) {
+		if(!args->args[i])
+			continue;
+
+		if(args->arg_type[i] != STRING_RESULT) {
+			hll_destroy(hll);
+			free(hll);
+			*error = 1;
+			return NULL;
+		}
+
+		if(hll_load(&hll2, args->args[i], args->lengths[i]) != 0) {
+			hll_destroy(hll);
+			free(hll);
+			*error = 1;
+			return NULL;
+		}
+
+		if(hll_merge(hll, &hll2) != 0) {
+			hll_destroy(hll);
+			hll_destroy(&hll2);
+			free(hll);
+			*error = 1;
+			return NULL;
+		}
+
+		hll_destroy(&hll2);
+	}
+
 
 	initid->ptr = (char *)hll;
 
