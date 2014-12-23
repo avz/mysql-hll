@@ -166,7 +166,7 @@ char *HLL_ADD(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *len
 	}
 
 	if(_add_args_to_hll(hll, args, 1) != 0) {
-		free(hll)
+		free(hll);
 		*error = 1;
 		return NULL;
 	}
