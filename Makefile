@@ -11,18 +11,18 @@ CFLAGS?=-O2
 build: mysql-hll.so
 
 mysql-hll.so: $(OBJS) deps/hll/lib/libhyperloglog.a
-	$(CC) -shared \
-	    -Wl,-install_name,mysql-hll.so \
-	    -static \
-	    -Ldeps/hll/lib -lhyperloglog \
-	    -o mysql-hll.so $(OBJS) -lc
+	$(CC) \
+		-lc \
+	    -shared \
+	    -Wl,-soname,mysql-hll.so \
+	    -o mysql-hll.so $(OBJS) deps/hll/lib/libhyperloglog.a
 
 deps/hll/lib/libhyperloglog.a:
 	make -C deps/hll lib/libhyperloglog.a
 
 .c.o:
-	$(CC) -c -fPIC -std=c90 -g -Wall -Wconversion $(CFLAGS) src/$*.c
+	$(CC) -c -fPIC -std=c90 -g -Wall -Wconversion -D_DEFAULT_SOURCE $(CFLAGS) src/$*.c
 
 clean:
 	rm -f *.o *.so.*
-	rm -rf deps/*/bin deps/*/lib
+	make -C deps/hll clean
