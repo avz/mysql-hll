@@ -326,3 +326,38 @@ double HLL_GROUP_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *er
 
 	return hll_count((struct HLL *)initid->ptr);
 }
+
+my_bool HLL_GROUP_MERGE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+	return HLL_GROUP_MERGE_init(initid, args, message);
+}
+
+void HLL_GROUP_MERGE_deinit(UDF_INIT *initid) {
+	HLL_GROUP_COUNT_deinit(initid);
+}
+
+void HLL_GROUP_MERGE_clear(UDF_INIT *initid, char *is_null, char *error) {
+	HLL_GROUP_MERGE_deinit(initid);
+}
+
+void HLL_GROUP_MERGE_reset(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	HLL_GROUP_MERGE_deinit(initid);
+}
+
+void HLL_GROUP_MERGE_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	HLL_GROUP_COUNT_add(initid, args, is_null, error);
+}
+
+char *HLL_GROUP_MERGE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *length,
+	char *is_null, char *error)
+{
+	struct HLL *hll = (struct HLL *)initid->ptr;
+
+	if(!initid->ptr) {
+		*is_null = 1;
+		return NULL;
+	}
+
+	*length = hll->size;
+
+	return (char *)hll->registers;
+}
