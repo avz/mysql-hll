@@ -12,9 +12,8 @@ build: mysql-hll.so
 
 mysql-hll.so: $(OBJS) deps/hll/lib/libhyperloglog.a
 	$(CC) \
-		-lc \
+	    -lc \
 	    -shared \
-	    -Wl,-soname,mysql-hll.so \
 	    -o mysql-hll.so $(OBJS) deps/hll/lib/libhyperloglog.a
 
 deps/hll/lib/libhyperloglog.a:
