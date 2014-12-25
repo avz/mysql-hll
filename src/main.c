@@ -34,6 +34,30 @@ static int _add_args_to_hll(struct HLL *hll, const UDF_ARGS *args, int start) {
 	return 0;
 };
 
+static int _merge_arg_to_hll(struct HLL *hll, enum Item_result type, const char *buf, size_t size) {
+	struct HLL tmp;
+
+	if(!buf) /* NULL arg */
+		return 0;
+
+	if(type != STRING_RESULT) {
+		return -1;
+	}
+
+	if(hll_load(&tmp, buf, size) != 0) {
+		return -1;
+	}
+
+	if(hll_merge(hll, &tmp) != 0) {
+		hll_destroy(&tmp);
+		return -1;
+	}
+
+	hll_destroy(&tmp);
+
+	return 0;
+}
+
 my_bool HLL_COUNT_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
 	if(args->arg_count != 1) {
 		strcpy(message, "This function takes exactly 1 argument");
@@ -204,7 +228,6 @@ char *HLL_MERGE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *l
 	char *is_null, char *error)
 {
 	struct HLL *hll;
-	struct HLL hll2;
 	int i;
 
 	if(!args->args[0]) {
@@ -221,34 +244,14 @@ char *HLL_MERGE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *l
 	}
 
 	for(i = 0; i < args->arg_count; i++) {
-		if(!args->args[i])
-			continue;
-
-		if(args->arg_type[i] != STRING_RESULT) {
+		if(_merge_arg_to_hll(hll, args->arg_type[i], args->args[i], args->lengths[i]) != 0) {
 			hll_destroy(hll);
 			free(hll);
+
 			*error = 1;
 			return NULL;
 		}
-
-		if(hll_load(&hll2, args->args[i], args->lengths[i]) != 0) {
-			hll_destroy(hll);
-			free(hll);
-			*error = 1;
-			return NULL;
-		}
-
-		if(hll_merge(hll, &hll2) != 0) {
-			hll_destroy(hll);
-			hll_destroy(&hll2);
-			free(hll);
-			*error = 1;
-			return NULL;
-		}
-
-		hll_destroy(&hll2);
 	}
-
 
 	initid->ptr = (char *)hll;
 
