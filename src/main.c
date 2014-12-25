@@ -258,3 +258,67 @@ char *HLL_MERGE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *l
 	*length = hll->size;
 	return (char *)hll->registers;
 }
+
+my_bool HLL_GROUP_COUNT_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+	if(args->arg_count != 1) {
+		strcpy(message, "This function takes exactly 1 argument");
+		return 1;
+	}
+
+	args->arg_type[0] = STRING_RESULT;
+	initid->maybe_null = 1;
+	initid->ptr = NULL;
+
+	return 0;
+}
+
+void HLL_GROUP_COUNT_deinit(UDF_INIT *initid) {
+	if(initid->ptr) {
+		hll_destroy((struct HLL*)initid->ptr);
+		free(initid->ptr);
+		initid->ptr = NULL;
+	}
+}
+
+void HLL_GROUP_COUNT_clear(UDF_INIT *initid, char *is_null, char *error) {
+	HLL_GROUP_COUNT_deinit(initid);
+}
+
+void HLL_GROUP_COUNT_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	struct HLL *hll;
+
+	if(!args->args[0])
+		return;
+
+	if(initid->ptr) {
+		hll = (struct HLL *)initid->ptr;
+
+		if(_merge_arg_to_hll(hll, args->arg_type[0], args->args[0], args->lengths[0]) != 0) {
+			HLL_GROUP_COUNT_deinit(initid);
+
+			*error = 1;
+			return;
+		}
+	} else {
+		hll = malloc(sizeof(*hll));
+
+		if(hll_load(hll, args->args[0], args->lengths[0]) != 0) {
+			free(hll);
+			*error = 1;
+			return;
+		}
+
+		initid->ptr = (char *)hll;
+		return;
+	}
+}
+
+double HLL_GROUP_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
+{
+	if(!initid->ptr) {
+		*is_null = 1;
+		return 0;
+	}
+
+	return hll_count((struct HLL *)initid->ptr);
+}
