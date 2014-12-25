@@ -284,6 +284,10 @@ void HLL_GROUP_COUNT_clear(UDF_INIT *initid, char *is_null, char *error) {
 	HLL_GROUP_COUNT_deinit(initid);
 }
 
+void HLL_GROUP_COUNT_reset(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	HLL_GROUP_COUNT_deinit(initid);
+}
+
 void HLL_GROUP_COUNT_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
 	struct HLL *hll;
 
