@@ -4,47 +4,55 @@
 #include <mysql/mysql.h>
 #include "../deps/hll/src/hll.h"
 
-static int _add_args_to_hll(struct HLL *hll, const UDF_ARGS *args, int start) {
-	char buf[64];
+static int _add_arg_to_hll(struct HLL *hll, enum Item_result type, const char *arg, size_t size) {
+	char b[64];
 	size_t len;
-	int i;
 
-	for(i = start; i < args->arg_count; i++) {
-		if(!args->args[i]) /* argument is NULL */
-			continue;
+	if(!arg) /* argument is NULL */
+		return 0;
 
-		switch(args->arg_type[i]) {
-			case DECIMAL_RESULT:
-			case STRING_RESULT:
-				hll_add(hll, args->args[i], args->lengths[i]);
-			break;
-			case INT_RESULT:
-				len = (size_t)snprintf(buf, sizeof(buf), "%lld", *((long long*)args->args[i]));
-				hll_add(hll, buf, len);
-			break;
-			case REAL_RESULT:
-				len = (size_t)snprintf(buf, sizeof(buf), "%f", *((double*)args->args[i]));
-				hll_add(hll, buf, len);
-			break;
-			default:
-				return -1;
-		}
+	switch(type) {
+		case DECIMAL_RESULT:
+		case STRING_RESULT:
+			hll_add(hll, arg, size);
+		break;
+		case INT_RESULT:
+			len = (size_t)snprintf(b, sizeof(b), "%lld", *((long long*)arg));
+			hll_add(hll, b, len);
+		break;
+		case REAL_RESULT:
+			len = (size_t)snprintf(b, sizeof(b), "%f", *((double*)arg));
+			hll_add(hll, b, len);
+		break;
+		default:
+			return -1;
 	}
 
 	return 0;
 };
 
-static int _merge_arg_to_hll(struct HLL *hll, enum Item_result type, const char *buf, size_t size) {
+static int _add_args_to_hll(struct HLL *hll, const UDF_ARGS *args, int start) {
+	int i;
+
+	for(i = start; i < args->arg_count; i++) {
+		if(_add_arg_to_hll(hll, args->arg_type[i], args->args[i], (size_t)args->lengths[i]) != 0)
+			return -1;
+	}
+
+	return 0;
+};
+
+static int _merge_arg_to_hll(struct HLL *hll, enum Item_result type, const char *arg, size_t size) {
 	struct HLL tmp;
 
-	if(!buf) /* NULL arg */
+	if(!arg) /* NULL arg */
 		return 0;
 
 	if(type != STRING_RESULT) {
 		return -1;
 	}
 
-	if(hll_load(&tmp, buf, size) != 0) {
+	if(hll_load(&tmp, arg, size) != 0) {
 		return -1;
 	}
 
