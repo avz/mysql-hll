@@ -56,6 +56,22 @@ SELECT HLL_COUNT_DISTINCT(`key`) AS `uniq` FROM (
 +------+
 ```
 
+### Installation (how to draw an owl)
+
+1. Build (`make`)
+2. Copy `mysql-hll.so` to MySQL plugin directory ([documentation](http://dev.mysql.com/doc/refman/5.0/en/udf-compiling.html))
+3. Install functions in MySQL
+```sql
+CREATE FUNCTION HLL_COUNT RETURNS INTEGER SONAME 'mysql-hll.so';
+CREATE FUNCTION HLL_CREATE RETURNS STRING SONAME 'mysql-hll.so';
+CREATE FUNCTION HLL_ADD RETURNS STRING SONAME 'mysql-hll.so';
+CREATE FUNCTION HLL_MERGE RETURNS STRING SONAME 'mysql-hll.so';
+CREATE AGGREGATE FUNCTION HLL_GROUP_COUNT RETURNS INTEGER SONAME 'mysql-hll.so';
+CREATE AGGREGATE FUNCTION HLL_GROUP_MERGE RETURNS STRING SONAME 'mysql-hll.so';
+CREATE AGGREGATE FUNCTION HLL_GROUP_CREATE RETURNS STRING SONAME 'mysql-hll.so';
+CREATE AGGREGATE FUNCTION HLL_COUNT_DISTINCT RETURNS INTEGER SONAME 'mysql-hll.so';
+```
+
 ### API
 
 #### Basic functions
