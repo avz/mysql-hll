@@ -1,4 +1,5 @@
 #include <string.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <mysql/mysql.h>
@@ -78,10 +79,10 @@ my_bool HLL_COUNT_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
 	return 0;
 }
 
-double HLL_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
+long long HLL_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 {
 	struct HLL hll;
-	double count = 3;
+	double count;
 
 	if(!args->args[0]) {
 		*is_null = 1;
@@ -97,7 +98,7 @@ double HLL_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 
 	hll_destroy(&hll);
 
-	return count;
+	return (long long)round(count);
 }
 
 my_bool HLL_CREATE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
@@ -325,14 +326,14 @@ void HLL_GROUP_COUNT_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *
 	}
 }
 
-double HLL_GROUP_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
+long long HLL_GROUP_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 {
 	if(!initid->ptr) {
 		*is_null = 1;
 		return 0;
 	}
 
-	return hll_count((struct HLL *)initid->ptr);
+	return (long long)round(hll_count((struct HLL *)initid->ptr));
 }
 
 my_bool HLL_GROUP_MERGE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
@@ -515,7 +516,7 @@ void HLL_COUNT_DISTINCT_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, cha
 	}
 }
 
-double HLL_COUNT_DISTINCT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
+long long HLL_COUNT_DISTINCT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
 {
 	struct HLL *hll = (struct HLL *)initid->ptr;
 
@@ -524,5 +525,5 @@ double HLL_COUNT_DISTINCT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char 
 		return 0;
 	}
 
-	return hll_count(hll);
+	return (long long)round(hll_count(hll));
 }
