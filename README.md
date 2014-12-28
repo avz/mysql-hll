@@ -37,7 +37,7 @@ SELECT HLL_COUNT(`hll`) AS `dau` FROM `uniqueUsersPerDay` WHERE `day` = CURDATE(
 +------+
 ```
 
-#### COUNT DISTINCT replacement
+#### `COUNT DISTINCT` replacement
 ```sql
 SELECT HLL_COUNT_DISTINCT(`key`) AS `uniq` FROM (
 	SELECT 1 AS `key`
@@ -60,14 +60,14 @@ SELECT HLL_COUNT_DISTINCT(`key`) AS `uniq` FROM (
 
 #### Basic functions
 
-##### `blob HLL_CREATE(bits[, key1[, key2[, ...]]])` - implemented
-##### `blob HLL_ADD(blob, key1[, key2[, ...]])` - implemented
-##### `double HLL_COUNT(blob)` - implemented
-##### `blob HLL_MERGE(blob1[, blob2[, ...]])` - implemented
+- `blob HLL_CREATE(bits[, key1[, key2[, ...]]])` - implemented
+- `blob HLL_ADD(blob, key1[, key2[, ...]])` - implemented
+- `double HLL_COUNT(blob)` - implemented
+- `blob HLL_MERGE(blob1[, blob2[, ...]])` - implemented
 
 #### Aggregation functions
 
-##### `blob HLL_GROUP_CREATE(bits, *keys)` - implemented
-##### `double HLL_GROUP_COUNT(*blobs)` - implemented
-##### `blob HLL_GROUP_MERGE(*blobs)` - implemented
-##### `double HLL_COUNT_DISTINCT(*keys)` - implemented
+- `blob HLL_GROUP_CREATE(bits, *keys)` - implemented
+- `double HLL_GROUP_COUNT(*blobs)` - implemented
+- `blob HLL_GROUP_MERGE(*blobs)` - implemented
+- `double HLL_COUNT_DISTINCT(*keys)` - implemented
