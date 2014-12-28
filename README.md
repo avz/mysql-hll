@@ -1,7 +1,7 @@
 # HyperLogLog UDF for MySQL (work in progress)
 
 ### Examples
-
+#### Incremental accumulation
 ```sql
 CREATE TABLE `uniqueUsersPerDay`(`day` DATE PRIMARY KEY, `hll` BLOB);
 ```
@@ -33,9 +33,27 @@ SELECT HLL_COUNT(`hll`) AS `dau` FROM `uniqueUsersPerDay` WHERE `day` = CURDATE(
 +-------------------+
 | dau               |
 +-------------------+
-| 2.000122080247517 |
+| 2                 |
 +-------------------+
-1 row in set (0,00 sec)
+```
+
+#### COUNT DISTINCT replacement
+```sql
+SELECT HLL_COUNT_DISTINCT(`key`) AS `uniq` FROM (
+	SELECT 1 AS `key`
+	UNION SELECT 2
+	UNION SELECT 3
+	UNION SELECT 4
+	UNION SELECT 2
+	UNION SELECT 3
+) AS t;
+```
+```
++------+
+| uniq |
++------+
+|    4 |
++------+
 ```
 
 ### API
