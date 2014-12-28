@@ -49,6 +49,6 @@ SELECT HLL_COUNT(`hll`) AS `dau` FROM `uniqueUsersPerDay` WHERE `day` = CURDATE(
 
 #### Aggregation functions
 
-##### `blob HLL_GROUP_CREATE(bits, *keys)`
+##### `blob HLL_GROUP_CREATE(bits, *keys)` - implemented
 ##### `double HLL_GROUP_COUNT(*blobs)` - implemented
 ##### `blob HLL_GROUP_MERGE(*blobs)` - implemented

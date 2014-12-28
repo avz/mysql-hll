@@ -369,3 +369,90 @@ char *HLL_GROUP_MERGE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned l
 
 	return (char *)hll->registers;
 }
+
+my_bool HLL_GROUP_CREATE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+	if(args->arg_count != 2) {
+		strcpy(message, "This function takes at exactly 2 arguments");
+		return 1;
+	}
+
+	args->arg_type[0] = INT_RESULT;
+	initid->maybe_null = 1;
+	initid->max_length = 1 << 24;
+	initid->ptr = NULL;
+
+	return 0;
+}
+
+void HLL_GROUP_CREATE_deinit(UDF_INIT *initid) {
+	if(initid->ptr) {
+		hll_destroy((struct HLL*)initid->ptr);
+		free(initid->ptr);
+		initid->ptr = NULL;
+	}
+}
+
+void HLL_GROUP_CREATE_clear(UDF_INIT *initid, char *is_null, char *error) {
+	HLL_GROUP_CREATE_deinit(initid);
+}
+
+void HLL_GROUP_CREATE_reset(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	HLL_GROUP_CREATE_deinit(initid);
+}
+
+void HLL_GROUP_CREATE_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	long long bits;
+	struct HLL *hll;
+
+	if(!args->args[0]) {
+		*error = 1;
+		return;
+	}
+
+	if(!args->args[1])
+		return;
+
+	if(initid->ptr) {
+		hll = (struct HLL *)initid->ptr;
+		
+	} else {
+		bits = *((long long *)args->args[0]);
+
+		if(bits <= 0 || bits > 255) {
+			*error = 1;
+			return;
+		}
+
+		hll = malloc(sizeof(*hll));
+
+		if(hll_init(hll, (uint8_t)bits) != 0) {
+			free(hll);
+			*error = 1;
+			return;
+		}
+
+		initid->ptr = (char *)hll;
+	}
+
+	if(_add_arg_to_hll(hll, args->arg_type[1], args->args[1], args->lengths[1]) != 0) {
+		HLL_GROUP_CREATE_deinit(initid);
+
+		*error = 1;
+		return;
+	}
+}
+
+char *HLL_GROUP_CREATE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *length,
+	char *is_null, char *error)
+{
+	struct HLL *hll = (struct HLL *)initid->ptr;
+
+	if(!initid->ptr) {
+		*is_null = 1;
+		return NULL;
+	}
+
+	*length = hll->size;
+
+	return (char *)hll->registers;
+}
