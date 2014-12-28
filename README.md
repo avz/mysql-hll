@@ -30,11 +30,11 @@ INSERT INTO `uniqueUsersPerDay`(`day`, `hll`)
 SELECT HLL_COUNT(`hll`) AS `dau` FROM `uniqueUsersPerDay` WHERE `day` = CURDATE();
 ```
 ```
-+-------------------+
-| dau               |
-+-------------------+
-| 2                 |
-+-------------------+
++------+
+| dau  |
++------+
+|    2 |
++------+
 ```
 
 #### COUNT DISTINCT replacement
