@@ -414,7 +414,7 @@ void HLL_GROUP_CREATE_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char 
 
 	if(initid->ptr) {
 		hll = (struct HLL *)initid->ptr;
-		
+
 	} else {
 		bits = *((long long *)args->args[0]);
 
@@ -455,4 +455,74 @@ char *HLL_GROUP_CREATE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned 
 	*length = hll->size;
 
 	return (char *)hll->registers;
+}
+
+my_bool HLL_COUNT_DISTINCT_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
+	if(args->arg_count != 1) {
+		strcpy(message, "This function takes at exactly 1 argument");
+		return 1;
+	}
+
+	initid->maybe_null = 1;
+	initid->max_length = 1 << 24;
+	initid->ptr = NULL;
+
+	return 0;
+}
+
+void HLL_COUNT_DISTINCT_deinit(UDF_INIT *initid) {
+	if(initid->ptr) {
+		hll_destroy((struct HLL*)initid->ptr);
+		free(initid->ptr);
+		initid->ptr = NULL;
+	}
+}
+
+void HLL_COUNT_DISTINCT_clear(UDF_INIT *initid, char *is_null, char *error) {
+	HLL_GROUP_CREATE_deinit(initid);
+}
+
+void HLL_COUNT_DISTINCT_reset(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	HLL_GROUP_CREATE_deinit(initid);
+}
+
+void HLL_COUNT_DISTINCT_add(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error) {
+	struct HLL *hll;
+
+	if(!args->args[0])
+		return;
+
+	if(initid->ptr) {
+		hll = (struct HLL *)initid->ptr;
+
+	} else {
+		hll = malloc(sizeof(*hll));
+
+		if(hll_init(hll, 16) != 0) {
+			free(hll);
+			*error = 1;
+			return;
+		}
+
+		initid->ptr = (char *)hll;
+	}
+
+	if(_add_arg_to_hll(hll, args->arg_type[0], args->args[0], args->lengths[0]) != 0) {
+		HLL_COUNT_DISTINCT_deinit(initid);
+
+		*error = 1;
+		return;
+	}
+}
+
+double HLL_COUNT_DISTINCT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error)
+{
+	struct HLL *hll = (struct HLL *)initid->ptr;
+
+	if(!initid->ptr) {
+		*is_null = 1;
+		return 0;
+	}
+
+	return hll_count(hll);
 }
