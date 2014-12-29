@@ -78,12 +78,12 @@ CREATE AGGREGATE FUNCTION HLL_COUNT_DISTINCT RETURNS INTEGER SONAME 'mysql-hll.s
 
 - `blob HLL_CREATE(bits[, key1[, key2[, ...]]])` - implemented
 - `blob HLL_ADD(blob, key1[, key2[, ...]])` - implemented
-- `double HLL_COUNT(blob)` - implemented
+- `int HLL_COUNT(blob)` - implemented
 - `blob HLL_MERGE(blob1[, blob2[, ...]])` - implemented
 
 #### Aggregation functions
 
 - `blob HLL_GROUP_CREATE(bits, *keys)` - implemented
-- `double HLL_GROUP_COUNT(*blobs)` - implemented
+- `int HLL_GROUP_COUNT(*blobs)` - implemented
 - `blob HLL_GROUP_MERGE(*blobs)` - implemented
-- `double HLL_COUNT_DISTINCT(*keys)` - implemented
+- `int HLL_COUNT_DISTINCT(*keys)` - implemented
