@@ -25,3 +25,6 @@ deps/hll/lib/libhyperloglog.a:
 clean:
 	rm -f *.o *.so.*
 	make -C deps/hll clean
+
+install: build
+	install mysql-hll.so "`mysql_config --plugindir`"
