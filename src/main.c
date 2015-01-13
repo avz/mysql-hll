@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <mysql/mysql.h>
+#include <mysql.h>
 #include "../deps/hll/src/hll.h"
 
 static int _add_arg_to_hll(struct HLL *hll, enum Item_result type, const char *arg, size_t size) {
