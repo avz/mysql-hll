@@ -18,11 +18,11 @@ static int _add_arg_to_hll(struct HLL *hll, enum Item_result type, const char *a
 			hll_add(hll, arg, size);
 		break;
 		case INT_RESULT:
-			len = (size_t)snprintf(b, sizeof(b), "%lld", *((long long*)arg));
+			len = (size_t)sprintf(b, "%lld", *((long long*)arg));
 			hll_add(hll, b, len);
 		break;
 		case REAL_RESULT:
-			len = (size_t)snprintf(b, sizeof(b), "%f", *((double*)arg));
+			len = (size_t)sprintf(b, "%f", *((double*)arg));
 			hll_add(hll, b, len);
 		break;
 		default:
@@ -98,7 +98,7 @@ long long HLL_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char *error
 
 	hll_destroy(&hll);
 
-	return (long long)round(count);
+	return (long long)count;
 }
 
 my_bool HLL_CREATE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
@@ -333,7 +333,7 @@ long long HLL_GROUP_COUNT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, char 
 		return 0;
 	}
 
-	return (long long)round(hll_count((struct HLL *)initid->ptr));
+	return (long long)hll_count((struct HLL *)initid->ptr);
 }
 
 my_bool HLL_GROUP_MERGE_init(UDF_INIT *initid, UDF_ARGS *args, char *message) {
@@ -525,5 +525,5 @@ long long HLL_COUNT_DISTINCT(UDF_INIT *initid, UDF_ARGS *args, char *is_null, ch
 		return 0;
 	}
 
-	return (long long)round(hll_count(hll));
+	return (long long)hll_count(hll);
 }
