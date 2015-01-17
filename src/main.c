@@ -140,10 +140,17 @@ char *HLL_CREATE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *
 		return NULL;
 	}
 
-	hll = malloc(sizeof(*hll));
+	if(initid->ptr) {
+		hll = (struct HLL *)initid->ptr;
+		hll_destroy(hll);
+	} else {
+		hll = malloc(sizeof(*hll));
+		initid->ptr = (char *)hll;
+	}
 
 	if(hll_init(hll, (uint8_t)bits) != 0) {
 		free(hll);
+		initid->ptr = NULL;
 		*error = 1;
 		return NULL;
 	}
@@ -152,8 +159,6 @@ char *HLL_CREATE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *
 		*error = 1;
 		return NULL;
 	}
-
-	initid->ptr = (char *)hll;
 
 	*length = hll->size;
 	return (char *)hll->registers;
@@ -190,22 +195,25 @@ char *HLL_ADD(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *len
 		return NULL;
 	}
 
-	hll = malloc(sizeof(*hll));
+	if(initid->ptr) {
+		hll = (struct HLL *)initid->ptr;
+		hll_destroy(hll);
+	} else {
+		hll = malloc(sizeof(*hll));
+		initid->ptr = (char *)hll;
+	}
 
 	if(hll_load(hll, args->args[0], args->lengths[0]) != 0) {
 		free(hll);
+		initid->ptr = NULL;
 		*error = 1;
 		return NULL;
 	}
 
 	if(_add_args_to_hll(hll, args, 1) != 0) {
-		hll_destroy(hll);
-		free(hll);
 		*error = 1;
 		return NULL;
 	}
-
-	initid->ptr = (char *)hll;
 
 	*length = hll->size;
 	return (char *)hll->registers;
@@ -244,25 +252,27 @@ char *HLL_MERGE(UDF_INIT *initid, UDF_ARGS *args, char *result, unsigned long *l
 		return NULL;
 	}
 
-	hll = malloc(sizeof(*hll));
+	if(initid->ptr) {
+		hll = (struct HLL *)initid->ptr;
+		hll_destroy(hll);
+	} else {
+		hll = malloc(sizeof(*hll));
+		initid->ptr = (char *)hll;
+	}
 
 	if(hll_load(hll, args->args[0], args->lengths[0]) != 0) {
 		free(hll);
+		initid->ptr = NULL;
 		*error = 1;
 		return NULL;
 	}
 
 	for(i = 0; i < args->arg_count; i++) {
 		if(_merge_arg_to_hll(hll, args->arg_type[i], args->args[i], args->lengths[i]) != 0) {
-			hll_destroy(hll);
-			free(hll);
-
 			*error = 1;
 			return NULL;
 		}
 	}
-
-	initid->ptr = (char *)hll;
 
 	*length = hll->size;
 	return (char *)hll->registers;
