@@ -1,4 +1,4 @@
-# HyperLogLog UDF for MySQL (work in progress)
+# HyperLogLog UDF for MySQL
 
 ### Examples
 #### Incremental accumulation
@@ -80,14 +80,14 @@ CREATE AGGREGATE FUNCTION HLL_COUNT_DISTINCT RETURNS INTEGER SONAME 'mysql-hll.s
 
 #### Basic functions
 
-- `blob HLL_CREATE(bits[, key1[, key2[, ...]]])` - implemented
-- `blob HLL_ADD(blob, key1[, key2[, ...]])` - implemented
-- `int HLL_COUNT(blob)` - implemented
-- `blob HLL_MERGE(blob1[, blob2[, ...]])` - implemented
+- `blob HLL_CREATE(bits[, key1[, key2[, ...]]])`
+- `blob HLL_ADD(blob, key1[, key2[, ...]])`
+- `int HLL_COUNT(blob)`
+- `blob HLL_MERGE(blob1[, blob2[, ...]])`
 
 #### Aggregation functions
 
-- `blob HLL_GROUP_CREATE(bits, *keys)` - implemented
-- `int HLL_GROUP_COUNT(*blobs)` - implemented
-- `blob HLL_GROUP_MERGE(*blobs)` - implemented
-- `int HLL_COUNT_DISTINCT(*keys)` - implemented
+- `blob HLL_GROUP_CREATE(bits, *keys)`
+- `int HLL_GROUP_COUNT(*blobs)`
+- `blob HLL_GROUP_MERGE(*blobs)`
+- `int HLL_COUNT_DISTINCT(*keys)`
